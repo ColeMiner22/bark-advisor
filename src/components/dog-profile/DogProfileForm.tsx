@@ -1,50 +1,33 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DogProfile, DogProfileInput } from '@/types/dog-profile';
-import { dogProfileService } from '@/lib/services/dog-profile.service';
-import { getCurrentUser } from '@/lib/auth';
+
+interface DogProfile {
+  name: string;
+  breed: string;
+  weight: number;
+  vet_issues?: string;
+  dietary_restrictions?: string;
+}
 
 export default function DogProfileForm() {
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [dogProfile, setDogProfile] = useState<DogProfileInput>({
+  const [dogProfile, setDogProfile] = useState<DogProfile>({
     name: '',
     breed: '',
     weight: 0,
     vet_issues: '',
     dietary_restrictions: ''
   });
-  const [existingProfile, setExistingProfile] = useState<DogProfile | null>(null);
 
   useEffect(() => {
-    const fetchDogProfile = async () => {
-      try {
-        const user = await getCurrentUser();
-        if (!user) return;
-
-        const profiles = await dogProfileService.getUserDogProfiles();
-        if (profiles && profiles.length > 0) {
-          setExistingProfile(profiles[0]);
-          setDogProfile({
-            name: profiles[0].name,
-            breed: profiles[0].breed,
-            weight: profiles[0].weight,
-            vet_issues: profiles[0].vet_issues || '',
-            dietary_restrictions: profiles[0].dietary_restrictions || ''
-          });
-        }
-      } catch (err) {
-        console.error('Error fetching dog profile:', err);
-        setError('Failed to load your dog profile');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDogProfile();
+    // Load profile from local storage
+    const savedProfile = localStorage.getItem('dogProfile');
+    if (savedProfile) {
+      setDogProfile(JSON.parse(savedProfile));
+    }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -62,13 +45,9 @@ export default function DogProfileForm() {
     setSuccess(null);
 
     try {
-      if (existingProfile) {
-        await dogProfileService.updateDogProfile(existingProfile.id, dogProfile);
-        setSuccess('Dog profile updated successfully!');
-      } else {
-        await dogProfileService.createDogProfile(dogProfile);
-        setSuccess('Dog profile created successfully!');
-      }
+      // Save to local storage
+      localStorage.setItem('dogProfile', JSON.stringify(dogProfile));
+      setSuccess('Dog profile saved successfully!');
     } catch (err) {
       console.error('Error saving dog profile:', err);
       setError('Failed to save your dog profile');
@@ -77,18 +56,10 @@ export default function DogProfileForm() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="text-center py-4">
-        <p className="text-gray-600">Loading your dog profile...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white shadow-soft-lg rounded-xl p-6 border border-gray-100">
       <h2 className="text-xl font-semibold mb-4 font-poppins">
-        {existingProfile ? 'Update Your Dog Profile' : 'Create Your Dog Profile'}
+        Your Dog Profile
       </h2>
       
       {error && (
@@ -184,9 +155,9 @@ export default function DogProfileForm() {
           <button
             type="submit"
             disabled={saving}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-soft text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            className="btn-primary w-full"
           >
-            {saving ? 'Saving...' : existingProfile ? 'Update Profile' : 'Create Profile'}
+            {saving ? 'Saving...' : 'Save Profile'}
           </button>
         </div>
       </form>

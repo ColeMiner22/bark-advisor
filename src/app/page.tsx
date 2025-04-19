@@ -2,66 +2,130 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="min-h-[calc(100vh-5rem)] flex flex-col">
+    <main className="min-h-screen">
       {/* Hero Section */}
-      <section className="flex-1 flex items-center justify-center py-16 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-float">
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Your Dog's Best Friend
-            </span>
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto">
-            Find the perfect products and get expert advice for your furry companion
+      <section className="relative py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
+              <span className="gradient-text">Bark Advisor</span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 animate-fade-in delay-200">
+              Get personalized product recommendations for your furry friend
+            </p>
+            <div className="flex justify-center animate-fade-in delay-300">
+              <Link href="/search" className="btn-primary hover-lift hover-glow">
+                Search Products
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="section-title animate-fade-in">How It Works</h2>
+          <div className="divider animate-fade-in delay-200" />
+          <p className="section-subtitle animate-fade-in delay-300">
+            Get personalized recommendations in two simple steps
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/search" className="btn-primary">
-              Find Products
-            </Link>
-            <Link href="/dashboard" className="btn-secondary">
-              View Dashboard
-            </Link>
+          
+          <div className="grid md:grid-cols-2 gap-8 mt-12">
+            <div className="card animate-slide-in-left delay-400 hover-lift">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6 mx-auto">
+                <span className="text-3xl">🐾</span>
+              </div>
+              <h3 className="text-xl font-semibold text-center mb-4">Enter Dog Info</h3>
+              <p className="text-gray-600 text-center">
+                Tell us about your dog's breed, age, and preferences
+              </p>
+            </div>
+            
+            <div className="card animate-slide-in-right delay-500 hover-lift">
+              <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-6 mx-auto">
+                <span className="text-3xl">✨</span>
+              </div>
+              <h3 className="text-xl font-semibold text-center mb-4">Get Recommendations</h3>
+              <p className="text-gray-600 text-center">
+                Receive personalized suggestions based on your dog's profile
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="bg-white py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            Why Choose Bark Advisor?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="card group">
-              <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg className="h-6 w-6 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-                </svg>
+      <section className="py-20 bg-gradient-to-br from-primary/5 to-accent/5">
+        <div className="container mx-auto px-4">
+          <h2 className="section-title animate-fade-in">Why Choose Bark Advisor</h2>
+          <div className="divider animate-fade-in delay-200" />
+          <p className="section-subtitle animate-fade-in delay-300">
+            Making pet care decisions easier and more informed
+          </p>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
+            <div className="glass-card animate-zoom-in delay-400 hover-lift hover-glow">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <span className="text-2xl">🎯</span>
               </div>
-              <h3 className="text-xl font-bold mb-2">Expert Reviews</h3>
-              <p className="text-gray-600">Get detailed insights from dog care professionals and experienced pet owners.</p>
+              <h3 className="text-lg font-semibold mb-2">Personalized</h3>
+              <p className="text-gray-600">
+                Tailored recommendations based on your dog's unique needs
+              </p>
             </div>
-            <div className="card group">
-              <div className="h-12 w-12 bg-accent/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg className="h-6 w-6 text-accent" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-7-2h2v-4h4v-2h-4V7h-2v4H8v2h4z"/>
-                </svg>
+            
+            <div className="glass-card animate-zoom-in delay-500 hover-lift hover-glow">
+              <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-4">
+                <span className="text-2xl">🤖</span>
               </div>
-              <h3 className="text-xl font-bold mb-2">Personalized Recommendations</h3>
-              <p className="text-gray-600">Get tailored product suggestions based on your dog's unique needs and preferences.</p>
+              <h3 className="text-lg font-semibold mb-2">AI-Powered</h3>
+              <p className="text-gray-600">
+                Advanced algorithms for accurate product analysis
+              </p>
             </div>
-            <div className="card group">
-              <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg className="h-6 w-6 text-primary" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
-                </svg>
+            
+            <div className="glass-card animate-zoom-in delay-600 hover-lift hover-glow">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <span className="text-2xl">📊</span>
               </div>
-              <h3 className="text-xl font-bold mb-2">Price Tracking</h3>
-              <p className="text-gray-600">Monitor price changes and get alerts when your favorite products go on sale.</p>
+              <h3 className="text-lg font-semibold mb-2">Detailed Scoring</h3>
+              <p className="text-gray-600">
+                Comprehensive analysis of product suitability
+              </p>
+            </div>
+            
+            <div className="glass-card animate-zoom-in delay-700 hover-lift hover-glow">
+              <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-4">
+                <span className="text-2xl">⚡</span>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Time-Saving</h3>
+              <p className="text-gray-600">
+                Quick and easy way to find the perfect products
+              </p>
             </div>
           </div>
         </div>
       </section>
-    </div>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold mb-6 animate-fade-in">
+            Ready to Find the Perfect Products?
+          </h2>
+          <p className="text-xl text-gray-600 mb-8 animate-fade-in delay-200">
+            Start searching for the best products for your dog today
+          </p>
+          <Link 
+            href="/search" 
+            className="btn-primary inline-block animate-fade-in delay-300 hover-lift hover-glow hover-pulse"
+          >
+            Search Products
+          </Link>
+        </div>
+      </section>
+    </main>
   );
 } 

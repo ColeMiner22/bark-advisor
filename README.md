@@ -1,52 +1,38 @@
 # Bark Advisor
 
-A full-stack web application for dog care advice and community, built with Next.js, TypeScript, Tailwind CSS, and Supabase.
+A web application for dog care advice and product recommendations, built with Next.js, TypeScript, and Tailwind CSS.
 
 ## Features
 
-- Modern, responsive UI with Tailwind CSS
-- Type-safe development with TypeScript
-- Authentication and database with Supabase
-- Server-side rendering with Next.js
-- Community features for dog owners
+- Dog profile management
+- Product search and recommendations
+- Modern, responsive UI
+- Local storage for data persistence
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 18.x or later
-- npm or yarn
-- Supabase account
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/bark-advisor.git
-cd bark-advisor
-```
-
+1. Clone the repository
 2. Install dependencies:
-```bash
-npm install
-# or
-yarn install
-```
-
-3. Create a `.env.local` file in the root directory and add your Supabase credentials:
-```
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-```
-
+   ```bash
+   npm install
+   ```
+3. Create a `.env.local` file in the root directory and add your OpenAI API key:
+   ```
+   OPENAI_API_KEY=your-api-key
+   ```
 4. Run the development server:
-```bash
-npm run dev
-# or
-yarn dev
-```
+   ```bash
+   npm run dev
+   ```
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech Stack
+
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- OpenAI API
+- Local Storage for data persistence
 
 ## Project Structure
 

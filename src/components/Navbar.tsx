@@ -30,14 +30,14 @@ export default function Navbar() {
           
           <div className="hidden sm:flex sm:items-center sm:space-x-4">
             <Link
-              href="/dashboard"
+              href="/"
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                pathname === '/dashboard'
+                pathname === '/'
                 ? 'bg-primary text-white shadow-md transform -translate-y-0.5'
                 : 'text-gray-500 hover:text-primary hover:bg-orange-50'
               }`}
             >
-              Dashboard
+              Home
             </Link>
             <Link
               href="/search"

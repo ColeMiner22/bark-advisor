@@ -1,133 +1,85 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getCurrentUser, signOut } from '@/lib/auth';
-import { User } from '@supabase/supabase-js';
 import DogProfileForm from '@/components/dog-profile/DogProfileForm';
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser) {
-          router.push('/login');
-          return;
-        }
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-        router.push('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [router]);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      router.push('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold font-poppins">Loading...</h2>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white shadow-soft-lg rounded-xl p-6 mb-8 border border-gray-100">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 font-poppins">Dashboard</h1>
-            <div className="flex gap-4">
-              <Link
-                href="/search"
-                className="px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-soft"
-              >
-                Product Search
-              </Link>
+    <div className="min-h-screen bg-gradient-to-b from-background-light to-background py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 font-poppins animate-fade-in">Your Dashboard</h1>
+          <div className="divider"></div>
+          <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto animate-fade-in delay-100">
+            Manage your dog profiles and get personalized product recommendations.
+          </p>
+        </div>
+        
+        <div className="glass-card mb-12 animate-fade-in delay-200">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 font-poppins mb-4 md:mb-0">Quick Actions</h2>
+            <Link
+              href="/search"
+              className="btn-primary"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              Search Products
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl p-6 border border-gray-100 shadow-soft hover:shadow-md transition-all duration-300 animate-fade-in delay-300">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">Your Dog Profiles</h3>
+              </div>
+              <p className="text-gray-600 mb-4">Manage your dog profiles and keep track of their information.</p>
               <button
-                onClick={handleSignOut}
-                className="px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-soft"
+                type="button"
+                className="inline-flex items-center text-primary hover:text-primary-dark font-medium"
               >
-                Sign Out
+                View Dog Profiles
+                <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                </svg>
               </button>
             </div>
-          </div>
-          
-          <div className="bg-accent/10 border-l-4 border-accent p-4 mb-6 rounded-r-xl">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-accent" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-gray-700">
-                  Welcome, <span className="font-medium">{user?.email}</span>! You're now signed in to Bark Advisor.
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white overflow-hidden shadow-soft rounded-xl border border-gray-100">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 font-poppins">Your Dog Profiles</h3>
-                <div className="mt-2 max-w-xl text-sm text-gray-500">
-                  <p>Manage your dog profiles and keep track of their information.</p>
-                </div>
-                <div className="mt-5">
-                  <button
-                    type="button"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-primary bg-primary/10 hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-soft"
-                  >
-                    View Dog Profiles
-                  </button>
-                </div>
-              </div>
-            </div>
             
-            <div className="bg-white overflow-hidden shadow-soft rounded-xl border border-gray-100">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 font-poppins">Account Settings</h3>
-                <div className="mt-2 max-w-xl text-sm text-gray-500">
-                  <p>Update your account information and preferences.</p>
+            <div className="bg-gradient-to-br from-secondary/5 to-accent/5 rounded-xl p-6 border border-gray-100 shadow-soft hover:shadow-md transition-all duration-300 animate-fade-in delay-400">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
                 </div>
-                <div className="mt-5">
-                  <button
-                    type="button"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl text-primary bg-primary/10 hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-soft"
-                  >
-                    Manage Account
-                  </button>
-                </div>
+                <h3 className="text-xl font-semibold text-gray-900">Preferences</h3>
               </div>
+              <p className="text-gray-600 mb-4">Update your preferences and notification settings.</p>
+              <button
+                type="button"
+                className="inline-flex items-center text-secondary hover:text-secondary-dark font-medium"
+              >
+                Manage Preferences
+                <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
         
-        <div className="mb-8">
+        <div className="mb-8 animate-fade-in delay-500">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 font-poppins">Your Dog Profile</h2>
-          <DogProfileForm />
+          <div className="glass-card">
+            <DogProfileForm />
+          </div>
         </div>
       </div>
     </div>
