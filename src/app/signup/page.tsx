@@ -27,7 +27,11 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await signUp(email, password);
+      const { data, error } = await signUp({ 
+        email, 
+        password,
+        name: email.split('@')[0] // Using email username as default name
+      });
       
       if (error) {
         setError(error.message);
