@@ -13,8 +13,8 @@ export interface DogProfileInput {
   breed: string;
   weight: number;
   age: number;
-  vet_issues: string | null;
-  dietary_restrictions: string | null;
+  healthIssues: string[];
+  dietaryRestrictions: string[];
 }
 
 export interface DogProfile extends DogProfileInput {
