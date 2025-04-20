@@ -143,8 +143,10 @@ export default function SearchPage() {
         breed: dogInfo.breed,
         weight: parseFloat(dogInfo.weight),
         age: parseFloat(dogInfo.age),
-        vet_issues: dogInfo.vet_issues || null,
-        dietary_restrictions: dogInfo.dietary_restrictions || null
+        healthIssues: [],
+        dietaryRestrictions: [],
+        vet_issues: dogInfo.vet_issues ?? undefined,
+        dietary_restrictions: dogInfo.dietary_restrictions ?? undefined
       };
 
       if (isCategory) {
