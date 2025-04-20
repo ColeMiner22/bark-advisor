@@ -6,6 +6,8 @@ export interface DogProfile {
   age: number;
   healthIssues: string[];
   dietaryRestrictions: string[];
+  vet_issues?: string;
+  dietary_restrictions?: string;
 }
 
 export interface DogProfileInput {
@@ -15,6 +17,8 @@ export interface DogProfileInput {
   age: number;
   healthIssues: string[];
   dietaryRestrictions: string[];
+  vet_issues?: string;
+  dietary_restrictions?: string;
 }
 
 export interface DogProfile extends DogProfileInput {
