@@ -48,6 +48,8 @@ export default function TestPage() {
     breed: '',
     weight: 0,
     age: 0,
+    healthIssues: [],
+    dietaryRestrictions: [],
     vet_issues: null,
     dietary_restrictions: null
   });
@@ -109,6 +111,8 @@ export default function TestPage() {
       breed: 'Golden Retriever',
       weight: 70,
       age: 3,
+      healthIssues: [],
+      dietaryRestrictions: [],
       vet_issues: 'None',
       dietary_restrictions: 'None'
     });

@@ -54,6 +54,11 @@ Format the response in JSON:
     response_format: { type: "json_object" }
   });
 
-  const result = JSON.parse(response.choices[0].message.content);
+  const content = response.choices[0].message.content;
+  if (!content) {
+    throw new Error('No response content from OpenAI');
+  }
+
+  const result = JSON.parse(content);
   return result as ProductAnalysis;
 }; 
