@@ -202,37 +202,38 @@ export async function POST(request: Request) {
         {
           role: "system",
           content: `You are a knowledgeable dog product expert. Analyze products and provide scores and recommendations based on a dog's profile. 
-CRITICAL: Your response MUST be valid JSON only. No text before or after. No markdown. No code blocks.
-For category searches, respond with this EXACT format:
-[
-  {
-    "name": "Product Name",
-    "score": 90,
-    "reason": "Brief reason"
-  }
-]
-
-For product searches, respond with this EXACT format:
+IMPORTANT: Your response must be valid JSON only, with no additional text before or after the JSON.
+DO NOT include any markdown formatting, code blocks, or explanatory text.
+DO NOT use single quotes for strings - use double quotes only.
+DO NOT include trailing commas in arrays or objects.
+For product searches, respond with this exact format:
 {
-  "score": 85,
-  "explanation": "Detailed explanation",
+  "score": number between 0-100,
+  "explanation": "detailed explanation",
   "similarProducts": [
     {
-      "name": "Product Name",
-      "score": 90,
-      "reason": "Brief reason"
+      "name": "product name",
+      "score": number between 0-100,
+      "reason": "explanation"
     }
   ]
-}`
+}
+For category searches, respond with this exact format:
+[
+  {
+    "name": "product name",
+    "score": number between 0-100,
+    "reason": "explanation"
+  }
+]`
         },
         {
           role: "user",
           content: prompt
         }
       ],
-      temperature: 0.1,
-      max_tokens: 1500,
-      response_format: { type: "json_object" }
+      temperature: 0.3,
+      max_tokens: 1000
     });
 
     // Extract JSON from response
@@ -244,69 +245,62 @@ For product searches, respond with this EXACT format:
     try {
       // First attempt: direct parse
       parsedResult = JSON.parse(rawResponse);
-      console.log('[API] Successfully parsed JSON response:', parsedResult);
+      console.log('[API] Successfully parsed JSON response');
     } catch (error) {
-      console.log('[API] Initial JSON parse failed, attempting fixes...', error);
+      console.log('[API] Initial JSON parse failed, attempting fixes...');
       
       // Second attempt: fix common JSON formatting issues
       let fixedJson = rawResponse
-        .replace(/```json\n?|\n?```/g, '') // Remove code blocks
-        .replace(/^[^{[]*/, '') // Remove text before first { or [
-        .replace(/[^}\]]*$/, '') // Remove text after last } or ]
-        .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3') // Fix unquoted keys
-        .replace(/'/g, '"') // Replace single quotes
-        .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
-        .replace(/\n/g, ' ') // Remove newlines
+        // Remove any markdown code block markers
+        .replace(/```json\n?|\n?```/g, '')
+        // Remove any text before the first { or [
+        .replace(/^[^{[]*/, '')
+        // Remove any text after the last } or ]
+        .replace(/[^}\]]*$/, '')
+        // Fix unquoted keys
+        .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3')
+        // Replace single quotes with double quotes
+        .replace(/'/g, '"')
+        // Remove trailing commas
+        .replace(/,(\s*[}\]])/g, '$1')
+        // Fix missing quotes around string values
+        .replace(/:(\s*)([^",\{\}\[\]]+)(\s*[,}])/g, ':"$2"$3')
         .trim();
 
-      console.log('[API] Attempting to parse fixed JSON:', fixedJson);
+      console.log('[API] Fixed JSON:', fixedJson);
       
       try {
         parsedResult = JSON.parse(fixedJson);
-        console.log('[API] Successfully parsed fixed JSON:', parsedResult);
+        console.log('[API] Successfully parsed fixed JSON');
       } catch (secondError) {
         console.error('[API] Failed to parse fixed JSON:', secondError);
         return NextResponse.json(
           { 
             error: 'Invalid response format from AI',
-            details: 'The AI response could not be parsed as valid JSON. Please try again.',
-            rawResponse: rawResponse.substring(0, 200)
+            details: 'Failed to parse AI response as JSON',
+            rawResponse: rawResponse.substring(0, 500) // Include first 500 chars for debugging
           },
           { status: 500 }
         );
       }
     }
 
-    // Log the type of response we got
-    console.log('[API] Response type:', {
-      isArray: Array.isArray(parsedResult),
-      hasScore: parsedResult?.score,
-      hasExplanation: parsedResult?.explanation,
-      hasSimilarProducts: parsedResult?.similarProducts,
-      isCategorySearch
-    });
-
     // Validate the parsed result
     if (isCategorySearch) {
       if (!Array.isArray(parsedResult)) {
-        console.error('[API] Category search response is not an array:', parsedResult);
-        // Try to extract array if it's wrapped
-        if (parsedResult && Array.isArray(parsedResult.recommendations)) {
-          parsedResult = parsedResult.recommendations;
-        } else {
-          return NextResponse.json(
-            { 
-              error: 'Invalid response format from AI',
-              details: 'Category search response must be an array',
-              rawResponse: rawResponse.substring(0, 200)
-            },
-            { status: 500 }
-          );
-        }
+        console.error('[API] Category search response is not an array');
+        return NextResponse.json(
+          { 
+            error: 'Invalid response format from AI',
+            details: 'Category search response must be an array',
+            rawResponse: rawResponse.substring(0, 500)
+          },
+          { status: 500 }
+        );
       }
 
       // Validate each recommendation
-      const validatedRecommendations = parsedResult.map((rec: { name?: string; score?: number; reason?: string }, index: number) => {
+      const validatedRecommendations = parsedResult.map((rec, index) => {
         if (!rec.name || typeof rec.score !== 'number' || !rec.reason) {
           console.error(`[API] Invalid recommendation at index ${index}:`, rec);
           return {
@@ -318,7 +312,7 @@ For product searches, respond with this EXACT format:
         return rec;
       });
 
-      return NextResponse.json(validatedRecommendations);
+      return NextResponse.json({ recommendations: validatedRecommendations });
     } else {
       // Product search validation
       if (!parsedResult.score || !parsedResult.explanation) {
