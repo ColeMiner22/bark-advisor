@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Poppins, Fredoka } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import { Analytics } from '@vercel/analytics/react'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const poppins = Poppins({ 
@@ -32,6 +33,7 @@ export default function RootLayout({
           <Navbar />
           <main className="relative">{children}</main>
         </div>
+        <Analytics />
       </body>
     </html>
   )
