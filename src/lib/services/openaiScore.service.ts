@@ -71,17 +71,18 @@ export const getRecommendation = async (
     }
     
     // Validate the response format
-    if (Array.isArray(result)) {
+    if (Array.isArray(result) || (result.recommendations && Array.isArray(result.recommendations))) {
       // Category recommendation response
-      if (!result.every(item => 
+      const recommendations = Array.isArray(result) ? result : result.recommendations;
+      if (!recommendations.every((item: { name: string; score: number; reason: string }) => 
         typeof item.name === 'string' && 
         typeof item.score === 'number' && 
         typeof item.reason === 'string'
       )) {
-        console.error('[Frontend] Invalid category recommendation format:', result);
+        console.error('[Frontend] Invalid category recommendation format:', recommendations);
         throw new Error('Invalid category recommendation format from API');
       }
-      return result as ProductRecommendation[];
+      return recommendations as ProductRecommendation[];
     } else {
       // Product score response
       if (typeof result.score !== 'number' || typeof result.explanation !== 'string') {
@@ -261,24 +262,26 @@ export async function getCategoryRecommendations(
     }
 
     // Validate the response format
-    if (!Array.isArray(data) || data.length === 0) {
-      console.error('[Service] Invalid response format:', data);
+    if (!Array.isArray(data)) {
+      console.log('[Service] Response is not an array, checking for recommendations object');
       
-      // Try to fix common issues
       if (data && typeof data === 'object') {
         // Check if data is an object with a recommendations array
         if (Array.isArray(data.recommendations)) {
+          console.log('[Service] Found recommendations array in response object');
           data = data.recommendations;
-          console.log('[Service] Used recommendations array from response object');
-        } else if (Array.isArray(data.products)) {
-          data = data.products;
-          console.log('[Service] Used products array from response object');
         } else {
+          console.error('[Service] No recommendations array found in response:', data);
           throw new Error('Invalid response format from API: Expected an array of recommendations');
         }
       } else {
         throw new Error('Invalid response format from API: Expected an array of recommendations');
       }
+    }
+
+    if (data.length === 0) {
+      console.warn('[Service] Empty recommendations array');
+      return [];
     }
 
     // Validate each recommendation
