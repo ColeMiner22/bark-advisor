@@ -72,7 +72,7 @@ export const getRecommendation = async (
     
     // Validate the response format
     if (Array.isArray(result)) {
-      // Category recommendation response
+      // Direct array response
       if (!result.every(item => 
         typeof item.name === 'string' && 
         typeof item.score === 'number' && 
@@ -82,6 +82,17 @@ export const getRecommendation = async (
         throw new Error('Invalid category recommendation format from API');
       }
       return result as ProductRecommendation[];
+    } else if (result.recommendations && Array.isArray(result.recommendations)) {
+      // Wrapped array response
+      if (!result.recommendations.every((item: { name: string; score: number; reason: string }) => 
+        typeof item.name === 'string' && 
+        typeof item.score === 'number' && 
+        typeof item.reason === 'string'
+      )) {
+        console.error('[Frontend] Invalid category recommendation format:', result.recommendations);
+        throw new Error('Invalid category recommendation format from API');
+      }
+      return result.recommendations as ProductRecommendation[];
     } else {
       // Product score response
       if (typeof result.score !== 'number' || typeof result.explanation !== 'string') {

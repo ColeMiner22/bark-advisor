@@ -312,7 +312,7 @@ For category searches, respond with this exact format:
         return rec;
       });
 
-      return NextResponse.json({ recommendations: validatedRecommendations });
+      return NextResponse.json(validatedRecommendations);
     } else {
       // Product search validation
       if (!parsedResult.score || !parsedResult.explanation) {
