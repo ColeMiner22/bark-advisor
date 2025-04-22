@@ -223,6 +223,7 @@ export async function getCategoryRecommendations(
         score: number;
         reason: string;
         asin: string;
+        affiliateLink: string;
       };
 
       type DefaultRecommendations = {
@@ -235,31 +236,36 @@ export async function getCategoryRecommendations(
             name: "Blue Buffalo Life Protection Formula Adult Dog Food",
             score: 90,
             reason: "A premium dry dog food suitable for most adult dogs, made with real chicken as the first ingredient. Contains a blend of antioxidants, vitamins, and minerals to support immune system health.",
-            asin: "B0018CGY4G"
+            asin: "B0018CGY4G",
+            affiliateLink: "https://www.amazon.com/dp/B0018CGY4G?tag=barkadvisor-20"
           },
           {
             name: "Hill's Science Diet Adult Perfect Weight Dry Dog Food",
             score: 88,
             reason: "Specially formulated for weight management, this food helps maintain lean muscle while supporting a healthy weight. Contains high-quality protein and natural fibers.",
-            asin: "B00N3L7Z9W"
+            asin: "B00N3L7Z9W",
+            affiliateLink: "https://www.amazon.com/dp/B00N3L7Z9W?tag=barkadvisor-20"
           },
           {
             name: "Purina Pro Plan Sensitive Skin & Stomach Salmon & Rice Formula",
             score: 87,
             reason: "Ideal for dogs with sensitive stomachs, this formula features salmon as the first ingredient and includes prebiotic fiber for digestive health.",
-            asin: "B01N7J3ELX"
+            asin: "B01N7J3ELX",
+            affiliateLink: "https://www.amazon.com/dp/B01N7J3ELX?tag=barkadvisor-20"
           },
           {
             name: "Royal Canin Small Breed Adult Dry Dog Food",
             score: 86,
             reason: "Specifically designed for small breed dogs, with an optimal kibble size and balanced nutrition for their unique needs.",
-            asin: "B0018CGY4G"
+            asin: "B0018CGY4G",
+            affiliateLink: "https://www.amazon.com/dp/B0018CGY4G?tag=barkadvisor-20"
           },
           {
             name: "Wellness Complete Health Natural Dry Dog Food",
             score: 85,
             reason: "Made with premium proteins and wholesome grains, this food supports overall health with antioxidants, probiotics, and omega fatty acids.",
-            asin: "B0018CGY4G"
+            asin: "B0018CGY4G",
+            affiliateLink: "https://www.amazon.com/dp/B0018CGY4G?tag=barkadvisor-20"
           }
         ],
         'treats': [
@@ -267,13 +273,15 @@ export async function getCategoryRecommendations(
             name: "Blue Buffalo Blue Bits Soft-Moist Training Dog Treats",
             score: 92,
             reason: "Perfect for training, these soft treats are made with real meat and contain no artificial flavors or preservatives.",
-            asin: "B0018CGY4G"
+            asin: "B0018CGY4G",
+            affiliateLink: "https://www.amazon.com/dp/B0018CGY4G?tag=barkadvisor-20"
           },
           {
             name: "Zuke's Mini Naturals Dog Treats",
             score: 90,
             reason: "Small, soft treats ideal for training, made with real meat and no artificial ingredients.",
-            asin: "B0018CGY4G"
+            asin: "B0018CGY4G",
+            affiliateLink: "https://www.amazon.com/dp/B0018CGY4G?tag=barkadvisor-20"
           }
         ],
         'toys': [
@@ -281,13 +289,15 @@ export async function getCategoryRecommendations(
             name: "KONG Classic Dog Toy",
             score: 95,
             reason: "Durable rubber toy that's great for chewing and can be stuffed with treats for extended play.",
-            asin: "B0002DHG4E"
+            asin: "B0002DHG4E",
+            affiliateLink: "https://www.amazon.com/dp/B0002DHG4E?tag=barkadvisor-20"
           },
           {
             name: "Nylabone Dura Chew Textured Ring",
             score: 88,
             reason: "Long-lasting chew toy that helps clean teeth and satisfies natural chewing instincts.",
-            asin: "B0018CGY4G"
+            asin: "B0018CGY4G",
+            affiliateLink: "https://www.amazon.com/dp/B0018CGY4G?tag=barkadvisor-20"
           }
         ]
       };
