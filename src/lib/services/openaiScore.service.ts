@@ -159,53 +159,57 @@ export async function getCategoryRecommendations(
   itemsPerPage: number = 4
 ): Promise<PaginatedCategoryRecommendations> {
   try {
+    console.log('Fetching category recommendations for:', {
+      category,
+      page,
+      itemsPerPage,
+      dogProfile: {
+        name: dogProfile.name,
+        breed: dogProfile.breed,
+        weight: dogProfile.weight,
+        age: dogProfile.age
+      }
+    });
+
     const response = await fetch('/api/recommend', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         dogProfile,
-        query: category,
-        type: 'category'
+        query: category
       })
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API error (${response.status}): ${errorText}`);
+      const errorData = await response.json();
+      console.error('API Error:', errorData);
+      throw new Error(errorData.error || 'Failed to fetch recommendations');
     }
 
-    const result = await response.json();
+    const data = await response.json();
     
-    if (!Array.isArray(result)) {
-      throw new Error('Invalid response format: expected array of category recommendations');
+    if (!Array.isArray(data)) {
+      console.error('Invalid response format:', data);
+      throw new Error('Invalid response format from API');
     }
 
-    const validatedRecommendations = result
-      .filter(item => 
-        item && 
-        typeof item.name === 'string' && 
-        typeof item.score === 'number' && 
-        typeof item.reason === 'string'
-      )
-      .map(item => ({
-        category: item.name,
-        score: item.score,
-        explanation: item.reason
-      }))
-      .sort((a, b) => b.score - a.score);
+    // Sort recommendations by score
+    const sortedRecommendations = data.sort((a, b) => b.score - a.score);
 
-    const totalItems = validatedRecommendations.length;
+    // Calculate pagination
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const paginatedRecommendations = validatedRecommendations.slice(startIndex, endIndex);
+    const paginatedRecommendations = sortedRecommendations.slice(startIndex, endIndex);
 
     return {
       recommendations: paginatedRecommendations,
-      hasMore: endIndex < totalItems,
-      totalItems
+      hasMore: endIndex < sortedRecommendations.length,
+      totalItems: sortedRecommendations.length
     };
   } catch (error) {
-    console.error('Error getting category recommendations:', error);
+    console.error('Error in getCategoryRecommendations:', error);
     throw error;
   }
 } 

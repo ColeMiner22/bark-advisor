@@ -1,15 +1,17 @@
 import { Product } from './product';
 
 export interface ProductRecommendation {
-  product: Product;
+  name: string;
   score: number;
-  explanation: string;
+  reason: string;
+  asin?: string;
 }
 
 export interface CategoryRecommendation {
-  category: string;
+  name: string;
   score: number;
   explanation: string;
+  asin?: string;
 }
 
 export interface PaginatedCategoryRecommendations {
@@ -21,5 +23,5 @@ export interface PaginatedCategoryRecommendations {
 export interface ProductRecommendationResponse {
   score: number;
   explanation: string;
-  similarProducts?: Product[];
+  similarProducts: ProductRecommendation[];
 } 

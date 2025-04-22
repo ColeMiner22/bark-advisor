@@ -104,6 +104,7 @@ For each product, provide the following information:
 1. Name of the product (use real, specific product names)
 2. Score (out of 100) based on suitability for this dog
 3. A brief explanation of why this product is suitable for the dog
+4. The Amazon ASIN (product ID) for the exact product. This should be a real ASIN for an existing product on Amazon.
 
 IMPORTANT: Your response must be valid JSON only, with no additional text before or after the JSON.
 Ensure products are ordered by score from highest to lowest.
@@ -114,12 +115,14 @@ Here is the exact JSON format for your response:
   {
     "name": "Product Name 1",
     "score": 95,
-    "reason": "Explanation for product 1."
+    "reason": "Explanation for product 1.",
+    "asin": "B0XXXXXXXX"
   },
   {
     "name": "Product Name 2",
     "score": 92,
-    "reason": "Explanation for product 2."
+    "reason": "Explanation for product 2.",
+    "asin": "B0XXXXXXXX"
   }
 ]`;
 }
@@ -128,86 +131,123 @@ Here is the exact JSON format for your response:
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
   maxRetries: 3,
-  timeout: 30000, // 30 seconds timeout
+  timeout: 60000, // Increased to 60 seconds
 });
 
+// Add timeout middleware
+const timeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { dogProfile, query } = body;
+  const timeoutPromise = timeout(60000);
+  const apiPromise = (async () => {
+    try {
+      const body = await request.json();
+      const { dogProfile, query } = body;
 
-    // Validate required fields
-    if (!dogProfile || !query) {
-      return NextResponse.json(
-        { error: 'Missing required fields: dogProfile and query' },
-        { status: 400 }
-      );
-    }
+      // Validate required fields
+      if (!dogProfile || !query) {
+        return NextResponse.json(
+          { error: 'Missing required fields: dogProfile and query' },
+          { status: 400 }
+        );
+      }
 
-    // Validate dog profile fields
-    if (!dogProfile.name || !dogProfile.breed || !dogProfile.weight || !dogProfile.age) {
-      return NextResponse.json(
-        { error: 'Invalid dog profile: name, breed, weight, and age are required' },
-        { status: 400 }
-      );
-    }
+      // Validate dog profile fields
+      if (!dogProfile.name || !dogProfile.breed || !dogProfile.weight || !dogProfile.age) {
+        return NextResponse.json(
+          { error: 'Invalid dog profile: name, breed, weight, and age are required' },
+          { status: 400 }
+        );
+      }
 
-    // Check if this is a category search
-    const isCategorySearch = isCategory(query);
+      // Check if this is a category search
+      const isCategorySearch = isCategory(query);
 
-    // Generate the appropriate prompt
-    const prompt = isCategorySearch 
-      ? generateCategoryPrompt(dogProfile, query)
-      : generateProductPrompt(dogProfile, query);
+      // Generate the appropriate prompt
+      const prompt = isCategorySearch 
+        ? generateCategoryPrompt(dogProfile, query)
+        : generateProductPrompt(dogProfile, query);
 
-    // Call OpenAI API
-    const response = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: `You are a knowledgeable dog product expert. Analyze products and provide scores and recommendations based on a dog's profile. 
+      // Call OpenAI API with optimized settings
+      const response = await openai.chat.completions.create({
+        model: "gpt-4",
+        messages: [
+          {
+            role: "system",
+            content: `You are a knowledgeable dog product expert. Analyze products and provide scores and recommendations based on a dog's profile. 
 IMPORTANT: Your response must be valid JSON only, with no additional text before or after the JSON.
 DO NOT include any markdown formatting, code blocks, or explanatory text.
 DO NOT use single quotes for strings - use double quotes only.
-DO NOT include trailing commas in arrays or objects.`
-        },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.7,
-      max_tokens: 1000
-    });
+DO NOT include trailing commas in arrays or objects.
+Keep responses concise but informative.`
+          },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      });
 
-    // Parse the response
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error('No content in OpenAI response');
-    }
+      // Parse the response
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('No content in OpenAI response');
+      }
 
-    let parsedResult;
-    try {
-      parsedResult = JSON.parse(content);
+      let parsedResult;
+      try {
+        parsedResult = JSON.parse(content);
+      } catch (error) {
+        console.error('Failed to parse OpenAI response:', content);
+        throw new Error('Invalid JSON response from OpenAI');
+      }
+
+      // Validate and return the response
+      if (isCategorySearch) {
+        if (!Array.isArray(parsedResult)) {
+          throw new Error('Expected array of category recommendations');
+        }
+        // Validate each recommendation
+        const validatedRecommendations = parsedResult.map((rec: any) => {
+          if (!rec.name || typeof rec.score !== 'number' || !rec.reason) {
+            throw new Error('Invalid recommendation format');
+          }
+          return {
+            name: rec.name,
+            score: rec.score,
+            explanation: rec.reason
+          };
+        });
+        return NextResponse.json(validatedRecommendations);
+      } else {
+        if (typeof parsedResult.score !== 'number' || typeof parsedResult.explanation !== 'string') {
+          throw new Error('Invalid product recommendation format');
+        }
+        return NextResponse.json(parsedResult);
+      }
     } catch (error) {
-      console.error('Failed to parse OpenAI response:', content);
-      throw new Error('Invalid JSON response from OpenAI');
+      console.error('Error in recommendation API:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      return NextResponse.json(
+        { error: errorMessage },
+        { status: 500 }
+      );
     }
+  })();
 
-    // Validate and return the response
-    if (isCategorySearch) {
-      if (!Array.isArray(parsedResult)) {
-        throw new Error('Expected array of category recommendations');
-      }
-      return NextResponse.json(parsedResult);
-    } else {
-      if (typeof parsedResult.score !== 'number' || typeof parsedResult.explanation !== 'string') {
-        throw new Error('Invalid product recommendation format');
-      }
-      return NextResponse.json(parsedResult);
+  try {
+    const result = await Promise.race([apiPromise, timeoutPromise]);
+    if (result === undefined) {
+      return NextResponse.json(
+        { error: 'Request timed out. Please try again with a simpler query.' },
+        { status: 504 }
+      );
     }
+    return result;
   } catch (error) {
     console.error('Error in recommendation API:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An error occurred';
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'An error occurred' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

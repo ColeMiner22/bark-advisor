@@ -73,8 +73,12 @@ const mockDogFoodProducts = [
 ];
 
 // Utility function to generate Amazon affiliate links
-function generateAffiliateLink(productName: string): string {
-  const encoded = encodeURIComponent(productName);
+function generateAffiliateLink(item: CategoryRecommendation): string {
+  if (item.asin) {
+    return `https://www.amazon.com/dp/${item.asin}?tag=barkadvisor-20`;
+  }
+  // Fallback to search if no ASIN available
+  const encoded = encodeURIComponent(item.name);
   return `https://www.amazon.com/s?k=${encoded}&tag=barkadvisor-20`;
 }
 
@@ -139,19 +143,22 @@ export default function SearchPage() {
     }));
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (query?: string) => {
+    const searchText = query || searchQuery;
+    
     // Validate required fields
     if (!state.dogInfo.name || !state.dogInfo.breed || !state.dogInfo.weight || !state.dogInfo.age) {
       setState(prev => ({ ...prev, error: 'Please fill in all required fields (name, breed, weight, and age).' }));
       return;
     }
 
-    if (!searchQuery.trim()) {
+    if (!searchText.trim()) {
       setState(prev => ({ ...prev, error: 'Please enter a product or category to search for.' }));
       return;
     }
 
     setState(prev => ({ ...prev, loading: true, error: null }));
+    setSearchQuery(searchText); // Update the search query state
 
     try {
       const dogProfile: DogProfileInput = {
@@ -163,11 +170,11 @@ export default function SearchPage() {
         dietaryRestrictions: state.dogInfo.dietaryRestrictions ? state.dogInfo.dietaryRestrictions.split(',').map(restriction => restriction.trim()).filter(Boolean) : []
       };
 
-      const result = await getCategoryRecommendations(dogProfile, searchQuery, 1, 4);
+      const result = await getCategoryRecommendations(dogProfile, searchText, 1, 4);
 
       // Save to search history
       const newHistory: SearchHistory[] = [...searchHistory, {
-        query: searchQuery,
+        query: searchText,
         timestamp: Date.now(),
         type: 'category'
       }];
@@ -180,7 +187,7 @@ export default function SearchPage() {
         hasMore: result.hasMore,
         totalItems: result.totalItems,
         currentPage: 1,
-        category: searchQuery,
+        category: searchText,
         loading: false,
         error: null
       }));
@@ -364,34 +371,131 @@ export default function SearchPage() {
         </div>
 
         {/* Results section */}
-        {state.recommendations.length > 0 && (
+        {state.loading ? (
+          <div className="mt-8 flex flex-col items-center justify-center py-12">
+            <div className="flex items-center space-x-4">
+              <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+              <span className="text-lg font-medium text-gray-700">Getting recommendations...</span>
+            </div>
+            <p className="mt-4 text-sm text-gray-500">This may take a few moments</p>
+          </div>
+        ) : state.recommendations.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">Recommendations</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h2 className="text-3xl font-bold mb-8 text-gray-800 text-center">Recommended Products</h2>
+            <div className="grid grid-cols-1 gap-6">
               {state.recommendations.map((item, index) => (
-                <div key={index} className="p-4 border rounded-lg shadow-sm">
-                  <h3 className="text-lg font-semibold">{item.category}</h3>
-                  <p className="text-gray-600">Score: {item.score}/100</p>
-                  <p className="mt-2">{item.explanation}</p>
+                <div 
+                  key={index} 
+                  className="relative bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-100"
+                >
+                  <div className="absolute top-4 right-4">
+                    <div className="flex flex-col items-center">
+                      <div className="relative w-32 h-20">
+                        {/* Background arc - full semicircle */}
+                        <div className="absolute inset-0">
+                          <svg className="w-full h-full" viewBox="0 0 120 60">
+                            <path
+                              d="M10 60 A50 50 0 0 1 110 60"
+                              fill="none"
+                              stroke="#e5e7eb"
+                              strokeWidth="12"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        </div>
+                        {/* Foreground arc - fills based on score */}
+                        <div className="absolute inset-0">
+                          <svg className="w-full h-full" viewBox="0 0 120 60">
+                            <path
+                              d="M10 60 A50 50 0 0 1 110 60"
+                              fill="none"
+                              stroke="#0ea5e9"
+                              strokeWidth="12"
+                              strokeLinecap="round"
+                              strokeDasharray="157"
+                              strokeDashoffset={157 - (157 * Math.min(item.score, 100)) / 100}
+                            />
+                          </svg>
+                        </div>
+                        {/* Score text */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-end pb-1">
+                          <span className="text-3xl font-bold text-gray-800">{item.score}</span>
+                          <span className="text-xs text-gray-500">Out of 100</span>
+                        </div>
+                      </div>
+                      <span className="text-sm font-medium text-gray-600 mt-1">Product Score</span>
+                    </div>
+                  </div>
+                  
+                  <div className="pr-20">
+                    <h3 className="text-2xl font-semibold text-gray-800 mb-3">{item.name}</h3>
+                    <div className="mb-4">
+                      {item.score >= 90 && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-200">
+                          <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                          Excellent Match
+                        </span>
+                      )}
+                      {item.score >= 80 && item.score < 90 && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-200">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                          Great Match
+                        </span>
+                      )}
+                      {item.score >= 70 && item.score < 80 && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-200">
+                          <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                          Good Match
+                        </span>
+                      )}
+                    </div>
+                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200 mb-4">
+                      <p className="text-gray-600 leading-relaxed text-base">
+                        {item.explanation}
+                        {item.score >= 90 && " This product is an excellent choice for your dog's specific needs, offering optimal benefits for their breed, age, and health requirements."}
+                        {item.score >= 80 && item.score < 90 && " This product is well-suited for your dog, providing good benefits while considering their unique characteristics and needs."}
+                        {item.score >= 70 && item.score < 80 && " This product is a suitable option for your dog, offering benefits that align with their profile while meeting basic requirements."}
+                      </p>
+                    </div>
+                    <a 
+                      href={generateAffiliateLink(item)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                    >
+                      {state.loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Getting Recommendations...
+                        </>
+                      ) : (
+                        <>
+                          <span className="mr-2">View on Amazon</span>
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                          </svg>
+                        </>
+                      )}
+                    </a>
+                  </div>
                 </div>
               ))}
             </div>
             
             {state.hasMore && (
-              <div className="mt-6 text-center">
+              <div className="mt-10 text-center">
                 <Button
                   onClick={handleLoadMore}
                   disabled={state.loading}
-                  variant="outline"
-                  className="w-full max-w-xs"
+                  className="w-full max-w-xs bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   {state.loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading...
+                      Loading More...
                     </>
                   ) : (
-                    'See More Options'
+                    'Load More Recommendations'
                   )}
                 </Button>
               </div>
