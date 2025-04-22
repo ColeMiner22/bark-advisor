@@ -159,7 +159,7 @@ export default function SearchPage() {
         dietary_restrictions: state.dogInfo.dietary_restrictions || null
       };
 
-      const result = await getCategoryRecommendations(dogProfile, state.category, 1);
+      const result = await getCategoryRecommendations(dogProfile, state.category, 1, 4);
 
       setState(prev => ({
         ...prev,
@@ -195,7 +195,7 @@ export default function SearchPage() {
       };
 
       const nextPage = state.currentPage + 1;
-      const result = await getCategoryRecommendations(dogProfile, state.category, nextPage);
+      const result = await getCategoryRecommendations(dogProfile, state.category, nextPage, 4);
 
       setState(prev => ({
         ...prev,
