@@ -156,12 +156,12 @@ export default function SearchPage() {
       const dogProfile: DogProfileInput = {
         name: state.dogInfo.name,
         breed: state.dogInfo.breed,
-        weight: parseFloat(state.dogInfo.weight),
-        age: parseInt(state.dogInfo.age, 10),
-        healthIssues: state.dogInfo.vet_issues ? state.dogInfo.vet_issues.split(',').map(issue => issue.trim()) : [],
-        dietaryRestrictions: state.dogInfo.dietary_restrictions ? state.dogInfo.dietary_restrictions.split(',').map(restriction => restriction.trim()) : [],
-        vet_issues: state.dogInfo.vet_issues || null,
-        dietary_restrictions: state.dogInfo.dietary_restrictions || null
+        weight: Number(state.dogInfo.weight),
+        age: Number(state.dogInfo.age),
+        healthIssues: state.dogInfo.vet_issues ? state.dogInfo.vet_issues.split(',').map(issue => issue.trim()).filter(Boolean) : [],
+        dietaryRestrictions: state.dogInfo.dietary_restrictions ? state.dogInfo.dietary_restrictions.split(',').map(restriction => restriction.trim()).filter(Boolean) : [],
+        vet_issues: state.dogInfo.vet_issues || undefined,
+        dietary_restrictions: state.dogInfo.dietary_restrictions || undefined
       };
 
       const result = await getCategoryRecommendations(dogProfile, searchQuery, 1, 4);
@@ -201,12 +201,12 @@ export default function SearchPage() {
       const dogProfile: DogProfileInput = {
         name: state.dogInfo.name,
         breed: state.dogInfo.breed,
-        weight: parseFloat(state.dogInfo.weight),
-        age: parseInt(state.dogInfo.age, 10),
-        healthIssues: state.dogInfo.vet_issues ? state.dogInfo.vet_issues.split(',').map(issue => issue.trim()) : [],
-        dietaryRestrictions: state.dogInfo.dietary_restrictions ? state.dogInfo.dietary_restrictions.split(',').map(restriction => restriction.trim()) : [],
-        vet_issues: state.dogInfo.vet_issues || null,
-        dietary_restrictions: state.dogInfo.dietary_restrictions || null
+        weight: Number(state.dogInfo.weight),
+        age: Number(state.dogInfo.age),
+        healthIssues: state.dogInfo.vet_issues ? state.dogInfo.vet_issues.split(',').map(issue => issue.trim()).filter(Boolean) : [],
+        dietaryRestrictions: state.dogInfo.dietary_restrictions ? state.dogInfo.dietary_restrictions.split(',').map(restriction => restriction.trim()).filter(Boolean) : [],
+        vet_issues: state.dogInfo.vet_issues || undefined,
+        dietary_restrictions: state.dogInfo.dietary_restrictions || undefined
       };
 
       const nextPage = state.currentPage + 1;

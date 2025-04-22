@@ -108,38 +108,30 @@ function generateCategoryPrompt(dogProfile: DogProfileInput, category: string): 
 - Health Issues: ${dogProfile.vet_issues || 'None'}
 - Dietary Restrictions: ${dogProfile.dietary_restrictions || 'None'}
 
-Recommend 4 top-rated ${category} for this dog.
+Recommend 9 top-rated ${category} for this dog, ordered from highest to lowest score.
 
 For each product, provide the following information:
-1. Name of the product
+1. Name of the product (use real, specific product names)
 2. Score (out of 100) based on suitability for this dog
 3. A brief explanation of why this product is suitable for the dog
 
 IMPORTANT: Your response must be valid JSON only, with no additional text before or after the JSON.
+Ensure products are ordered by score from highest to lowest.
 
 Here is the exact JSON format for your response:
 
 [
   {
     "name": "Product Name 1",
-    "score": 90,
+    "score": 95,
     "reason": "Explanation for product 1."
   },
   {
     "name": "Product Name 2",
-    "score": 88,
+    "score": 92,
     "reason": "Explanation for product 2."
-  },
-  {
-    "name": "Product Name 3",
-    "score": 87,
-    "reason": "Explanation for product 3."
-  },
-  {
-    "name": "Product Name 4",
-    "score": 85,
-    "reason": "Explanation for product 4."
   }
+  // ... more products ...
 ]`;
   console.log('[API] Generated prompt:', prompt);
   return prompt;
@@ -312,7 +304,8 @@ For category searches, respond with this exact format:
         return rec;
       });
 
-      return NextResponse.json({ recommendations: validatedRecommendations });
+      // Return the recommendations directly as an array
+      return NextResponse.json(validatedRecommendations);
     } else {
       // Product search validation
       if (!parsedResult.score || !parsedResult.explanation) {

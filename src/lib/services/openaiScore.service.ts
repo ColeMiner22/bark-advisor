@@ -1,4 +1,6 @@
-import { DogProfile, DogProfileInput } from '@/types/dog-profile';
+import { DogProfile } from '@/types/dogProfile';
+import { Product } from '@/types/product';
+import { CategoryScore, ProductScore } from '@/types/score';
 
 // Define interfaces for the response types
 export interface ProductScore {
@@ -71,18 +73,17 @@ export const getRecommendation = async (
     }
     
     // Validate the response format
-    if (Array.isArray(result) || (result.recommendations && Array.isArray(result.recommendations))) {
+    if (Array.isArray(result)) {
       // Category recommendation response
-      const recommendations = Array.isArray(result) ? result : result.recommendations;
-      if (!recommendations.every((item: { name: string; score: number; reason: string }) => 
+      if (!result.every((item: { name: string; score: number; reason: string }) => 
         typeof item.name === 'string' && 
         typeof item.score === 'number' && 
         typeof item.reason === 'string'
       )) {
-        console.error('[Frontend] Invalid category recommendation format:', recommendations);
+        console.error('[Frontend] Invalid category recommendation format:', result);
         throw new Error('Invalid category recommendation format from API');
       }
-      return recommendations as ProductRecommendation[];
+      return result as ProductRecommendation[];
     } else {
       // Product score response
       if (typeof result.score !== 'number' || typeof result.explanation !== 'string') {
@@ -106,100 +107,36 @@ export const getRecommendation = async (
  * @param product The product name to evaluate
  * @returns A score and explanation for the product, along with similar product recommendations
  */
-export async function getProductRecommendationScore(
-  dogProfile: DogProfileInput,
-  product: string
-): Promise<ProductScore> {
-  console.log('[Service] Getting recommendation score for:', {
-    dogProfile,
-    product
-  });
-
+export async function getProductRecommendationScore(product: Product, dogProfile: DogProfile): Promise<ProductScore> {
   try {
     const response = await fetch('/api/recommend', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        dogProfile,
-        query: product
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product, dogProfile, type: 'product' })
     });
 
-    console.log('[Service] API response status:', response.status);
-
-    // Get the response text first for better error handling
-    const responseText = await response.text();
-    console.log('[Service] Raw API response:', responseText);
-
-    // Try to parse the response as JSON
-    let data;
-    try {
-      data = JSON.parse(responseText);
-      console.log('[Service] Parsed API response:', data);
-    } catch (parseError) {
-      console.error('[Service] Failed to parse API response:', parseError);
-      throw new Error('Invalid JSON response from API');
-    }
-
-    // Check if the response contains an error
     if (!response.ok) {
-      console.error('[Service] API error:', data);
-      
-      // Provide more detailed error information
-      if (data.details) {
-        throw new Error(`API error: ${data.error} - ${data.details}`);
-      } else if (data.rawResponse) {
-        throw new Error(`API error: ${data.error} - Raw response: ${data.rawResponse.substring(0, 100)}...`);
-      } else {
-        throw new Error(data.error || 'Failed to get recommendation');
-      }
+      const errorText = await response.text();
+      throw new Error(`API error (${response.status}): ${errorText}`);
     }
 
-    // Validate the response format
-    if (typeof data.score !== 'number' || !data.explanation) {
-      console.error('[Service] Invalid response format:', data);
-      
-      // Try to fix common issues
-      if (data && typeof data === 'object') {
-        // Check if the score is a string that can be converted to a number
-        if (typeof data.score === 'string') {
-          const parsedScore = parseInt(data.score, 10);
-          if (!isNaN(parsedScore)) {
-            data.score = parsedScore;
-            console.log('[Service] Fixed score from string to number:', data.score);
-          }
-        }
-        
-        // Check if explanation is missing but reason exists
-        if (!data.explanation && data.reason) {
-          data.explanation = data.reason;
-          console.log('[Service] Used reason as explanation');
-        }
-        
-        // If we still don't have a valid score or explanation, throw an error
-        if (typeof data.score !== 'number' || !data.explanation) {
-          throw new Error('Invalid response format from API: Missing score or explanation');
-        }
-      } else {
-        throw new Error('Invalid response format from API: Missing score or explanation');
-      }
+    const result = await response.json();
+    
+    if (!result.score || typeof result.score !== 'number') {
+      throw new Error('Invalid score format in API response');
     }
 
-    // Ensure similarProducts is an array
-    if (!Array.isArray(data.similarProducts)) {
-      console.log('[Service] similarProducts is not an array, setting to empty array');
-      data.similarProducts = [];
+    if (!result.explanation || typeof result.explanation !== 'string') {
+      throw new Error('Missing or invalid explanation in API response');
     }
 
     return {
-      score: data.score,
-      explanation: data.explanation,
-      similarProducts: data.similarProducts || []
+      score: result.score,
+      explanation: result.explanation,
+      similarProducts: Array.isArray(result.similarProducts) ? result.similarProducts : []
     };
   } catch (error) {
-    console.error('[Service] Error getting recommendation:', error);
+    console.error('Error getting product recommendation:', error);
     throw error;
   }
 }
@@ -207,101 +144,49 @@ export async function getProductRecommendationScore(
 /**
  * Get category recommendations based on a dog's profile
  * @param dogProfile The dog's profile information
- * @param category The category to get recommendations for
- * @returns An array of product recommendations for the category
+ * @param page The page number (1-based) to fetch, defaults to 1
+ * @param itemsPerPage The number of items per page, defaults to 4
+ * @returns An object containing the recommendations and pagination info
  */
 export async function getCategoryRecommendations(
-  dogProfile: DogProfileInput,
-  category: string
-): Promise<ProductRecommendation[]> {
-  console.log('[Service] Getting category recommendations for:', {
-    dogProfile,
-    category
-  });
-
+  dogProfile: DogProfile,
+  page: number = 1,
+  itemsPerPage: number = 4
+): Promise<{ recommendations: CategoryScore[]; hasMore: boolean; totalItems: number }> {
   try {
     const response = await fetch('/api/recommend', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        dogProfile,
-        query: category
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dogProfile, type: 'category' })
     });
 
-    console.log('[Service] API response status:', response.status);
-
-    // Get the response text first for better error handling
-    const responseText = await response.text();
-    console.log('[Service] Raw API response:', responseText);
-
-    // Try to parse the response as JSON
-    let data;
-    try {
-      data = JSON.parse(responseText);
-      console.log('[Service] Parsed API response:', data);
-    } catch (parseError) {
-      console.error('[Service] Failed to parse API response:', parseError);
-      throw new Error('Invalid JSON response from API');
-    }
-
-    // Check if the response contains an error
     if (!response.ok) {
-      console.error('[Service] API error:', data);
-      
-      // Provide more detailed error information
-      if (data.details) {
-        throw new Error(`API error: ${data.error} - ${data.details}`);
-      } else if (data.rawResponse) {
-        throw new Error(`API error: ${data.error} - Raw response: ${data.rawResponse.substring(0, 100)}...`);
-      } else {
-        throw new Error(data.error || 'Failed to get recommendations');
-      }
+      const errorText = await response.text();
+      throw new Error(`API error (${response.status}): ${errorText}`);
     }
 
-    // Validate the response format
-    if (!Array.isArray(data)) {
-      console.log('[Service] Response is not an array, checking for recommendations object');
-      
-      if (data && typeof data === 'object') {
-        // Check if data is an object with a recommendations array
-        if (Array.isArray(data.recommendations)) {
-          console.log('[Service] Found recommendations array in response object');
-          data = data.recommendations;
-        } else {
-          console.error('[Service] No recommendations array found in response:', data);
-          throw new Error('Invalid response format from API: Expected an array of recommendations');
-        }
-      } else {
-        throw new Error('Invalid response format from API: Expected an array of recommendations');
-      }
+    const result = await response.json();
+    
+    if (!Array.isArray(result)) {
+      throw new Error('Invalid response format: expected array of category recommendations');
     }
 
-    if (data.length === 0) {
-      console.warn('[Service] Empty recommendations array');
-      return [];
-    }
+    const validatedRecommendations = result
+      .filter(item => item && typeof item.score === 'number' && typeof item.category === 'string')
+      .sort((a, b) => b.score - a.score);
 
-    // Validate each recommendation
-    const validatedRecommendations = data.map((rec: any) => {
-      // Ensure each recommendation has the required fields
-      if (!rec.name || typeof rec.score === 'undefined' || !rec.reason) {
-        console.warn('[Service] Invalid recommendation format:', rec);
-      }
-      
-      return {
-        name: rec.name || rec.product || 'Unknown Product',
-        score: typeof rec.score === 'number' ? rec.score : 
-               typeof rec.score === 'string' ? parseInt(rec.score, 10) || 0 : 0,
-        reason: rec.reason || rec.explanation || 'No reason provided'
-      };
-    });
+    const totalItems = validatedRecommendations.length;
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedRecommendations = validatedRecommendations.slice(startIndex, endIndex);
 
-    return validatedRecommendations;
+    return {
+      recommendations: paginatedRecommendations,
+      hasMore: endIndex < totalItems,
+      totalItems
+    };
   } catch (error) {
-    console.error('[Service] Error getting category recommendations:', error);
+    console.error('Error getting category recommendations:', error);
     throw error;
   }
 } 
