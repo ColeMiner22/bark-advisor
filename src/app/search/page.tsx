@@ -145,6 +145,11 @@ export default function SearchPage() {
       return;
     }
 
+    if (!searchQuery.trim()) {
+      setState(prev => ({ ...prev, error: 'Please enter a product or category to search for.' }));
+      return;
+    }
+
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
@@ -159,7 +164,16 @@ export default function SearchPage() {
         dietary_restrictions: state.dogInfo.dietary_restrictions || null
       };
 
-      const result = await getCategoryRecommendations(dogProfile, state.category, 1, 4);
+      const result = await getCategoryRecommendations(dogProfile, searchQuery, 1, 4);
+
+      // Save to search history
+      const newHistory: SearchHistory[] = [...searchHistory, {
+        query: searchQuery,
+        timestamp: Date.now(),
+        type: 'category'
+      }];
+      setSearchHistory(newHistory);
+      localStorage.setItem('searchHistory', JSON.stringify(newHistory));
 
       setState(prev => ({
         ...prev,
@@ -167,6 +181,7 @@ export default function SearchPage() {
         hasMore: result.hasMore,
         totalItems: result.totalItems,
         currentPage: 1,
+        category: searchQuery,
         loading: false
       }));
     } catch (error) {
@@ -195,7 +210,7 @@ export default function SearchPage() {
       };
 
       const nextPage = state.currentPage + 1;
-      const result = await getCategoryRecommendations(dogProfile, state.category, nextPage, 4);
+      const result = await getCategoryRecommendations(dogProfile, searchQuery, nextPage, 4);
 
       setState(prev => ({
         ...prev,
