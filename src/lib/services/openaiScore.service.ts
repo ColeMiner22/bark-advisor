@@ -1,6 +1,6 @@
-import { DogProfile } from '@/types/dogProfile';
+import { DogProfileInput } from '@/types/dogProfile';
 import { Product } from '@/types/product';
-import { CategoryScore, ProductScore } from '@/types/score';
+import { ProductRecommendationResponse, CategoryRecommendation, PaginatedCategoryRecommendations } from '@/types/recommendation';
 
 // Define interfaces for the response types
 export interface ProductScore {
@@ -103,16 +103,23 @@ export const getRecommendation = async (
 
 /**
  * Get a recommendation score for a product based on a dog's profile
+ * @param product The product to evaluate
  * @param dogProfile The dog's profile information
- * @param product The product name to evaluate
  * @returns A score and explanation for the product, along with similar product recommendations
  */
-export async function getProductRecommendationScore(product: Product, dogProfile: DogProfile): Promise<ProductScore> {
+export async function getProductRecommendationScore(
+  product: Product,
+  dogProfile: DogProfileInput
+): Promise<ProductRecommendationResponse> {
   try {
     const response = await fetch('/api/recommend', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product, dogProfile, type: 'product' })
+      body: JSON.stringify({ 
+        dogProfile,
+        query: product.name,
+        type: 'product'
+      })
     });
 
     if (!response.ok) {
@@ -122,12 +129,8 @@ export async function getProductRecommendationScore(product: Product, dogProfile
 
     const result = await response.json();
     
-    if (!result.score || typeof result.score !== 'number') {
-      throw new Error('Invalid score format in API response');
-    }
-
-    if (!result.explanation || typeof result.explanation !== 'string') {
-      throw new Error('Missing or invalid explanation in API response');
+    if (typeof result.score !== 'number' || typeof result.explanation !== 'string') {
+      throw new Error('Invalid product recommendation format');
     }
 
     return {
@@ -144,20 +147,26 @@ export async function getProductRecommendationScore(product: Product, dogProfile
 /**
  * Get category recommendations based on a dog's profile
  * @param dogProfile The dog's profile information
+ * @param category The category to search for
  * @param page The page number (1-based) to fetch, defaults to 1
  * @param itemsPerPage The number of items per page, defaults to 4
  * @returns An object containing the recommendations and pagination info
  */
 export async function getCategoryRecommendations(
-  dogProfile: DogProfile,
+  dogProfile: DogProfileInput,
+  category: string,
   page: number = 1,
   itemsPerPage: number = 4
-): Promise<{ recommendations: CategoryScore[]; hasMore: boolean; totalItems: number }> {
+): Promise<PaginatedCategoryRecommendations> {
   try {
     const response = await fetch('/api/recommend', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dogProfile, type: 'category' })
+      body: JSON.stringify({ 
+        dogProfile,
+        query: category,
+        type: 'category'
+      })
     });
 
     if (!response.ok) {
@@ -172,7 +181,17 @@ export async function getCategoryRecommendations(
     }
 
     const validatedRecommendations = result
-      .filter(item => item && typeof item.score === 'number' && typeof item.category === 'string')
+      .filter(item => 
+        item && 
+        typeof item.name === 'string' && 
+        typeof item.score === 'number' && 
+        typeof item.reason === 'string'
+      )
+      .map(item => ({
+        category: item.name,
+        score: item.score,
+        explanation: item.reason
+      }))
       .sort((a, b) => b.score - a.score);
 
     const totalItems = validatedRecommendations.length;
