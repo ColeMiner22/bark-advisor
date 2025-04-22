@@ -10,18 +10,27 @@ export interface ProductRecommendation {
 export interface CategoryRecommendation {
   name: string;
   score: number;
-  explanation: string;
-  asin?: string;
+  reason: string;
+  asin: string;
+  price?: string;
+  affiliateLink: string;
+}
+
+export interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
 }
 
 export interface PaginatedCategoryRecommendations {
   recommendations: CategoryRecommendation[];
-  hasMore: boolean;
-  totalItems: number;
+  pagination: PaginationInfo;
 }
 
 export interface ProductRecommendationResponse {
   score: number;
-  explanation: string;
-  similarProducts: ProductRecommendation[];
+  reason: string;
+  asin?: string;
+  similarProducts?: string[];
 } 

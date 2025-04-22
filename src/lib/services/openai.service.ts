@@ -15,6 +15,11 @@ export interface ProductAnalysis {
   }[];
 }
 
+interface ProductScore {
+  score: number;
+  reason: string;
+}
+
 export const analyzeProduct = async (productName: string, dogProfile: DogProfile): Promise<ProductAnalysis> => {
   const prompt = `Analyze the following product "${productName}" for a dog with these characteristics:
 - Breed: ${dogProfile.breed}
@@ -24,7 +29,7 @@ export const analyzeProduct = async (productName: string, dogProfile: DogProfile
 
 Please provide:
 1. A score from 0-100 indicating how suitable this product is for this specific dog
-2. A brief explanation (2-3 sentences) for the score
+2. A detailed reason for the score, considering the dog's specific characteristics
 3. 2-3 better alternative products with brief reasons why they're better
 
 Format the response in JSON:
@@ -44,7 +49,9 @@ Format the response in JSON:
     messages: [
       {
         role: "system",
-        content: "You are a professional dog care expert and product analyst. Provide detailed, safety-conscious advice about dog products."
+        content: `You are a dog product recommendation expert. For each product, provide:
+1. A score from 0-100 based on how well it matches the dog's needs
+2. A detailed reason for the score, considering the dog's specific characteristics`
       },
       {
         role: "user",
