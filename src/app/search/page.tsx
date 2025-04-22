@@ -90,8 +90,8 @@ interface SearchPageState {
     breed: string;
     weight: string;
     age: string;
-    vet_issues: string;
-    dietary_restrictions: string;
+    healthIssues: string;
+    dietaryRestrictions: string;
   };
   error: string | null;
 }
@@ -103,8 +103,8 @@ export default function SearchPage() {
       breed: '',
       weight: '',
       age: '',
-      vet_issues: '',
-      dietary_restrictions: ''
+      healthIssues: '',
+      dietaryRestrictions: ''
     },
     category: '',
     loading: false,
@@ -159,10 +159,8 @@ export default function SearchPage() {
         breed: state.dogInfo.breed,
         weight: Number(state.dogInfo.weight),
         age: Number(state.dogInfo.age),
-        healthIssues: state.dogInfo.vet_issues ? state.dogInfo.vet_issues.split(',').map(issue => issue.trim()).filter(Boolean) : [],
-        dietaryRestrictions: state.dogInfo.dietary_restrictions ? state.dogInfo.dietary_restrictions.split(',').map(restriction => restriction.trim()).filter(Boolean) : [],
-        vet_issues: state.dogInfo.vet_issues || undefined,
-        dietary_restrictions: state.dogInfo.dietary_restrictions || undefined
+        healthIssues: state.dogInfo.healthIssues ? state.dogInfo.healthIssues.split(',').map(issue => issue.trim()).filter(Boolean) : [],
+        dietaryRestrictions: state.dogInfo.dietaryRestrictions ? state.dogInfo.dietaryRestrictions.split(',').map(restriction => restriction.trim()).filter(Boolean) : []
       };
 
       const result = await getCategoryRecommendations(dogProfile, searchQuery, 1, 4);
@@ -205,10 +203,8 @@ export default function SearchPage() {
         breed: state.dogInfo.breed,
         weight: Number(state.dogInfo.weight),
         age: Number(state.dogInfo.age),
-        healthIssues: state.dogInfo.vet_issues ? state.dogInfo.vet_issues.split(',').map(issue => issue.trim()).filter(Boolean) : [],
-        dietaryRestrictions: state.dogInfo.dietary_restrictions ? state.dogInfo.dietary_restrictions.split(',').map(restriction => restriction.trim()).filter(Boolean) : [],
-        vet_issues: state.dogInfo.vet_issues || undefined,
-        dietary_restrictions: state.dogInfo.dietary_restrictions || undefined
+        healthIssues: state.dogInfo.healthIssues ? state.dogInfo.healthIssues.split(',').map(issue => issue.trim()).filter(Boolean) : [],
+        dietaryRestrictions: state.dogInfo.dietaryRestrictions ? state.dogInfo.dietaryRestrictions.split(',').map(restriction => restriction.trim()).filter(Boolean) : []
       };
 
       const nextPage = state.currentPage + 1;
@@ -336,28 +332,28 @@ export default function SearchPage() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label htmlFor="vet_issues" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="healthIssues" className="block text-sm font-medium text-gray-700 mb-1">
                   Health Issues (optional)
                 </label>
                 <input
                   type="text"
-                  id="vet_issues"
-                  name="vet_issues"
-                  value={state.dogInfo.vet_issues}
+                  id="healthIssues"
+                  name="healthIssues"
+                  value={state.dogInfo.healthIssues}
                   onChange={handleDogInfoChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., Allergies, Joint problems"
                 />
               </div>
               <div className="md:col-span-2">
-                <label htmlFor="dietary_restrictions" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="dietaryRestrictions" className="block text-sm font-medium text-gray-700 mb-1">
                   Dietary Restrictions (optional)
                 </label>
                 <input
                   type="text"
-                  id="dietary_restrictions"
-                  name="dietary_restrictions"
-                  value={state.dogInfo.dietary_restrictions}
+                  id="dietaryRestrictions"
+                  name="dietaryRestrictions"
+                  value={state.dogInfo.dietaryRestrictions}
                   onChange={handleDogInfoChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., Grain-free, No chicken"
