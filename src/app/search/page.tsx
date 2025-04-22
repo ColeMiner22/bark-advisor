@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { DogProfileInput } from '@/types/dog-profile';
+import { CategoryRecommendation } from '@/types/recommendation';
 import { getProductRecommendationScore, getCategoryRecommendations, ProductScore, ProductRecommendation } from '@/lib/services/openaiScore.service';
 import { SearchBar } from '@/components/SearchBar';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -78,6 +79,12 @@ function generateAffiliateLink(productName: string): string {
 }
 
 interface SearchPageState {
+  recommendations: CategoryRecommendation[];
+  hasMore: boolean;
+  totalItems: number;
+  currentPage: number;
+  category: string;
+  loading: boolean;
   dogInfo: {
     name: string;
     breed: string;
@@ -86,13 +93,7 @@ interface SearchPageState {
     vet_issues: string;
     dietary_restrictions: string;
   };
-  category: string;
-  loading: boolean;
   error: string | null;
-  recommendations: ProductRecommendation[];
-  currentPage: number;
-  hasMore: boolean;
-  totalItems: number;
 }
 
 export default function SearchPage() {
@@ -182,7 +183,8 @@ export default function SearchPage() {
         totalItems: result.totalItems,
         currentPage: 1,
         category: searchQuery,
-        loading: false
+        loading: false,
+        error: null
       }));
     } catch (error) {
       console.error('Search error:', error);
@@ -370,16 +372,12 @@ export default function SearchPage() {
           <div className="mt-8">
             <h2 className="text-2xl font-bold mb-4">Recommendations</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {state.recommendations.map((recommendation, index) => (
-                <Card key={`${recommendation.name}-${index}`} className="p-4">
-                  <CardHeader>
-                    <CardTitle>{recommendation.name}</CardTitle>
-                    <CardDescription>Score: {recommendation.score}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{recommendation.reason}</p>
-                  </CardContent>
-                </Card>
+              {state.recommendations.map((item, index) => (
+                <div key={index} className="p-4 border rounded-lg shadow-sm">
+                  <h3 className="text-lg font-semibold">{item.category}</h3>
+                  <p className="text-gray-600">Score: {item.score}/100</p>
+                  <p className="mt-2">{item.explanation}</p>
+                </div>
               ))}
             </div>
             
