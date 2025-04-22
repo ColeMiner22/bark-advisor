@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DogProfileInput } from '@/types/dog-profile';
+import { DogProfileInput } from '@/types/dogProfile';
+import { Product } from '@/types/product';
 import { getProductRecommendationScore, getCategoryRecommendations, ProductScore, ProductRecommendation } from '@/lib/services/openaiScore.service';
 
 // Common product categories for testing
@@ -37,21 +38,29 @@ const SAMPLE_PRODUCTS = [
   'Iams ProActive Health Adult'
 ];
 
+// Helper function to check if a query is a category
+function isCategoryQuery(query: string): boolean {
+  return TEST_CATEGORIES.some(
+    category => category.toLowerCase().trim() === query.toLowerCase().trim()
+  );
+}
+
 export default function TestPage() {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{
+    type: 'category' | 'product';
+    data: any;
+  } | null>(null);
   const [isCategory, setIsCategory] = useState(false);
   const [dogProfile, setDogProfile] = useState<DogProfileInput>({
-    name: '',
-    breed: '',
-    weight: 0,
-    age: 0,
-    healthIssues: [],
-    dietaryRestrictions: [],
-    vet_issues: null,
-    dietary_restrictions: null
+    name: 'Test Dog',
+    breed: 'Labrador',
+    weight: 70,
+    age: 3,
+    healthIssues: ['None'],
+    dietaryRestrictions: ['None']
   });
 
   // Load dog profile from localStorage on component mount
@@ -69,32 +78,30 @@ export default function TestPage() {
   const handleTest = async () => {
     if (!query.trim()) return;
 
-    setLoading(true);
-    setError(null);
-    setResult(null);
-
     try {
-      console.log('Test request:', {
-        query,
-        dogProfile,
-        timestamp: new Date().toISOString()
-      });
+      setLoading(true);
+      setError(null);
+      setResult(null);
 
-      // Check if query is a category
-      const isCategoryQuery = TEST_CATEGORIES.some(
-        category => category.toLowerCase().trim() === query.toLowerCase().trim()
-      );
-      setIsCategory(isCategoryQuery);
-
-      console.log('Query type:', isCategoryQuery ? 'Category' : 'Product');
-
-      if (isCategoryQuery) {
+      if (isCategoryQuery(query)) {
         const recommendations = await getCategoryRecommendations(dogProfile, query);
-        console.log('Category recommendations:', recommendations);
         setResult({ type: 'category', data: recommendations });
       } else {
-        const score = await getProductRecommendationScore(dogProfile, query);
-        console.log('Product score:', score);
+        const testProduct: Product = {
+          id: 'test-product-1',
+          name: query,
+          description: 'Test product description',
+          price: 29.99,
+          category: 'Test Category',
+          imageUrl: 'https://example.com/test.jpg',
+          brand: 'Test Brand',
+          ingredients: ['Test Ingredient 1', 'Test Ingredient 2'],
+          features: ['Test Feature 1', 'Test Feature 2'],
+          rating: 4.5,
+          reviews: 100
+        };
+
+        const score = await getProductRecommendationScore(testProduct, dogProfile);
         setResult({ type: 'product', data: score });
       }
     } catch (err) {
@@ -111,10 +118,8 @@ export default function TestPage() {
       breed: 'Golden Retriever',
       weight: 70,
       age: 3,
-      healthIssues: [],
-      dietaryRestrictions: [],
-      vet_issues: 'None',
-      dietary_restrictions: 'None'
+      healthIssues: ['None'],
+      dietaryRestrictions: ['None']
     });
   };
 
@@ -170,11 +175,11 @@ export default function TestPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Vet Issues</label>
+              <label className="block text-sm font-medium text-gray-700">Health Issues</label>
               <input
                 type="text"
-                value={dogProfile.vet_issues || ''}
-                onChange={(e) => setDogProfile(prev => ({ ...prev, vet_issues: e.target.value }))}
+                value={Array.isArray(dogProfile.healthIssues) ? dogProfile.healthIssues.join(', ') : dogProfile.healthIssues || ''}
+                onChange={(e) => setDogProfile(prev => ({ ...prev, healthIssues: e.target.value.split(',').map(item => item.trim()) }))}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
               />
             </div>
@@ -182,8 +187,8 @@ export default function TestPage() {
               <label className="block text-sm font-medium text-gray-700">Dietary Restrictions</label>
               <input
                 type="text"
-                value={dogProfile.dietary_restrictions || ''}
-                onChange={(e) => setDogProfile(prev => ({ ...prev, dietary_restrictions: e.target.value }))}
+                value={Array.isArray(dogProfile.dietaryRestrictions) ? dogProfile.dietaryRestrictions.join(', ') : dogProfile.dietaryRestrictions || ''}
+                onChange={(e) => setDogProfile(prev => ({ ...prev, dietaryRestrictions: e.target.value.split(',').map(item => item.trim()) }))}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
               />
             </div>
