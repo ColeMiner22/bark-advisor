@@ -84,7 +84,7 @@ export default function TestPage() {
       setResult(null);
 
       if (isCategoryQuery(query)) {
-        const recommendations = await getCategoryRecommendations(dogProfile, query);
+        const recommendations = await getCategoryRecommendations(dogProfile, 1, 10, query);
         setResult({ type: 'category', data: recommendations });
       } else {
         const testProduct: Product = {
