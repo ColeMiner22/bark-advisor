@@ -137,7 +137,7 @@ const openai = new OpenAI({
 // Add timeout middleware
 const timeout = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   const timeoutPromise = timeout(60000);
   const apiPromise = (async () => {
     try {
@@ -190,7 +190,10 @@ Keep responses concise but informative.`
       // Parse the response
       const content = response.choices[0]?.message?.content;
       if (!content) {
-        throw new Error('No content in OpenAI response');
+        return NextResponse.json(
+          { error: 'No content in OpenAI response' },
+          { status: 500 }
+        );
       }
 
       let parsedResult;
@@ -198,37 +201,34 @@ Keep responses concise but informative.`
         parsedResult = JSON.parse(content);
       } catch (error) {
         console.error('Failed to parse OpenAI response:', content);
-        throw new Error('Invalid JSON response from OpenAI');
+        return NextResponse.json(
+          { error: 'Invalid JSON response from OpenAI' },
+          { status: 500 }
+        );
       }
 
       // Validate and return the response
       if (isCategorySearch) {
         if (!Array.isArray(parsedResult)) {
-          throw new Error('Expected array of category recommendations');
+          return NextResponse.json(
+            { error: 'Expected array of category recommendations' },
+            { status: 500 }
+          );
         }
-        // Validate each recommendation
-        const validatedRecommendations = parsedResult.map((rec: any) => {
-          if (!rec.name || typeof rec.score !== 'number' || !rec.reason) {
-            throw new Error('Invalid recommendation format');
-          }
-          return {
-            name: rec.name,
-            score: rec.score,
-            explanation: rec.reason
-          };
-        });
-        return NextResponse.json(validatedRecommendations);
+        return NextResponse.json(parsedResult);
       } else {
         if (typeof parsedResult.score !== 'number' || typeof parsedResult.explanation !== 'string') {
-          throw new Error('Invalid product recommendation format');
+          return NextResponse.json(
+            { error: 'Invalid product recommendation format' },
+            { status: 500 }
+          );
         }
         return NextResponse.json(parsedResult);
       }
     } catch (error) {
       console.error('Error in recommendation API:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       return NextResponse.json(
-        { error: errorMessage },
+        { error: error instanceof Error ? error.message : 'An error occurred' },
         { status: 500 }
       );
     }
@@ -242,12 +242,11 @@ Keep responses concise but informative.`
         { status: 504 }
       );
     }
-    return result;
+    return result as Response;
   } catch (error) {
     console.error('Error in recommendation API:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An error occurred';
     return NextResponse.json(
-      { error: errorMessage },
+      { error: error instanceof Error ? error.message : 'An error occurred' },
       { status: 500 }
     );
   }
